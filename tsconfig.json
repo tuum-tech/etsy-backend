@@ -1,0 +1,19 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "target": "ES2020",
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    /* Stylize errors and messages using color and context. */
+    "pretty": true,
+    "incremental": true,
+    "outDir": "dist",
+    "sourceMap": true
+  },
+  "exclude": ["node_modules", "dist"]
+}
