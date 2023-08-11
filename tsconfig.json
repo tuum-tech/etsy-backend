@@ -13,7 +13,9 @@
     "pretty": true,
     "incremental": true,
     "outDir": "dist",
-    "sourceMap": true
+    "sourceMap": true,
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "types": ["express-session"]
   },
   "exclude": ["node_modules", "dist"]
 }
