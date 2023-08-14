@@ -113,51 +113,57 @@ app.get('/auth/etsy/callback', (req, res) => {
 })
 
 app.get('/api/orders', (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1] // Get Bearer token from header
+  const access_token = req.headers.authorization?.split(' ')[1] // Get Bearer token from header
 
-  if (!token) {
+  if (!access_token) {
     return res.status(401).send('Authorization token missing.')
   }
+
+  // An Etsy access token includes your shop/user ID
+  // as a token prefix, so we can extract that too
+  const user_id = access_token.split('.')[0]
 
   // Call Etsy API to retrieve the user's shop ID first
   request.get(
     {
-      url: 'https://openapi.etsy.com/v3/application/users/me',
+      url: `https://openapi.etsy.com/v3/application/users/${user_id}`,
       headers: {
         'x-api-key': CLIENT_ID, // Add this header
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${access_token}`
       }
     },
     (error, response, body) => {
       if (error) {
-        return res.status(500).send('Error fetching shop details.')
+        return res.status(500).send('Error fetching user details.')
       }
 
       const userData = JSON.parse(body)
       console.log('Etsy User Data:', userData) // Log the data for debugging
 
-      if (!userData.results || userData.results.length === 0) {
-        return res
-          .status(404)
-          .json({ error: 'No shop details found for user.' })
-      }
-
-      const shopId = userData.results[0].primary_shop_id // Extracting primary shop ID from user's data
-
-      // Now fetch the orders using shopId
+      // Fetch the receipts for the given user
       request.get(
         {
-          url: `https://openapi.etsy.com/v3/application/shops/${shopId}/receipts`,
+          url: `https://openapi.etsy.com/v3/application/users/${user_id}/transactions`,
           headers: {
-            Authorization: `Bearer ${token}`
+            'x-api-key': CLIENT_ID,
+            Authorization: `Bearer ${access_token}`
           }
         },
         (error, response, body) => {
           if (error) {
-            return res.status(500).send('Error fetching orders.')
+            return res.status(500).send('Error fetching receipts.')
           }
-          const orderData = JSON.parse(body)
-          res.json(orderData) // Return order data to frontend
+
+          const receiptsData = JSON.parse(body)
+          console.log('Etsy User Receipts Data:', receiptsData) // Log the data for debugging
+
+          if (!receiptsData.results || receiptsData.results.length === 0) {
+            return res
+              .status(404)
+              .json({ error: 'No receipts found for user.' })
+          }
+
+          res.json(receiptsData) // Return receipts data to the frontend
         }
       )
     }
